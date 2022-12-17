@@ -1,0 +1,41 @@
+local s,id=GetID()
+function s.initial_effect(c)
+	--Set to the Pendulum Zone
+	Pendulum.AddProcedure(c)
+	local e1=Effect.CreateEffect(c)
+	e1:SetCategory(CATEGORY_ATKCHANGE)
+	e1:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_TRIGGER_F)
+	e1:SetRange(LOCATION_MZONE)
+	e1:SetCode(EVENT_PHASE+PHASE_DRAW)
+	e1:SetCountLimit(1)
+	e1:SetOperation(s.atkop)
+	c:RegisterEffect(e1)
+	local e2=Effect.CreateEffect(c)
+	e2:SetType(EFFECT_TYPE_QUICK_O)
+	e2:SetRange(LOCATION_MZONE)
+	e2:SetCode(EVENT_FREE_CHAIN)
+	e2:SetCountLimit(1)
+	e2:SetTarget(s.pltg)
+	e2:SetOperation(s.plop)
+	c:RegisterEffect(e2)
+end
+function s.atkop(e,tp,eg,ep,ev,re,r,rp)
+	local c=e:GetHandler()
+	local e1=Effect.CreateEffect(c)
+	e1:SetType(EFFECT_TYPE_SINGLE)
+	e1:SetCode(EFFECT_UPDATE_ATTACK)
+	e1:SetProperty(EFFECT_FLAG_COPY_INHERIT)
+	e1:SetReset(RESET_EVENT+RESETS_STANDARD_DISABLE)
+	e1:SetValue(1000)
+	c:RegisterEffect(e1)
+end
+function s.pltg(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return (Duel.CheckLocation(tp,LOCATION_PZONE,0) or Duel.CheckLocation(tp,LOCATION_PZONE,1))
+		and Duel.IsExistingMatchingCard(s.filter,tp,LOCATION_EXTRA+LOCATION_HAND+LOCATION_DECK,0,1,e:GetHandler()) end
+end
+function s.plop(e,tp,eg,ep,ev,re,r,rp)
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOZONE)
+	local g=Duel.SelectMatchingCard(tp, s.filter, tp, LOCATION_EXTRA+LOCATION_HAND+LOCATION_DECK, 0, 1, 1, e:GetHandler())
+	if #g<0 or not (Duel.CheckLocation(tp, LOCATION_PZONE, 0) or Duel.CheckLocation(tp, LOCATION_PZONE, 1)) then return end
+	Duel.MoveToField(g:GetFirst(), tp, tp, LOCATION_PZONE, POS_FACEUP, true)
+end
